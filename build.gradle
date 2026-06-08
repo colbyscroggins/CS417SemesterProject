@@ -1,0 +1,100 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id "java"
+    id "application"
+    id "eclipse"
+
+    id "project-report"
+    id "jacoco"
+    id "pmd"
+}
+
+java {
+    sourceCompatibility = JavaVersion.toVersion(21)
+    targetCompatibility = JavaVersion.toVersion(21)
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    // testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testImplementation 'org.hamcrest:hamcrest-library:2.2'
+}
+
+jar {
+    archiveBaseName = "ParseTemps"
+
+    manifest {
+        attributes(
+            "Main-Class": "ParseTempsDriver"
+        )
+    }
+}
+
+run {
+    mainClass = "ParseTempsDriver"
+}
+
+application {
+    mainClass = "ParseTempsDriver"
+}
+// Apply common settings for both test (unit test) and integration test tasks
+tasks.withType(Test) {
+    useJUnitPlatform()
+
+    reports {
+        html.required = true
+    }
+    ignoreFailures = true
+
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+}
+
+test {
+    finalizedBy jacocoTestReport
+}
+
+//------------------------------------------------------------------------------
+// Documentation Tool(s)
+//------------------------------------------------------------------------------
+javadoc {
+    failOnError = false
+}
+
+//------------------------------------------------------------------------------
+// Analysis Tools
+//------------------------------------------------------------------------------
+
+jacoco {
+    toolVersion = "0.8.13"
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        csv.required = true
+    }
+}
+
+pmd {
+    toolVersion = "6.21.0"
+    ignoreFailures = true
+    ruleSets = [
+        "category/java/bestpractices.xml",
+        "category/java/codestyle.xml",
+        "category/java/design.xml",
+        "category/java/errorprone.xml",
+        "category/java/performance.xml"
+    ]
+}
+
