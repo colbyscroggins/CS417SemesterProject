@@ -1,3 +1,6 @@
+# About
+ This program preprocesses temperature data taken from a 4-core Intel i7-6700K CPU, recorded every 30 seconds under heavy load while batch encoding videos. The data is read from a provided input file and preprocessed for further use at a later stage of the project.
+
 # Requirements
 
  * Java Development Kit 21
