@@ -45,30 +45,28 @@
  Sample Output:
  * sample-input-core-00.txt
  ```
-  0 <= x <=       30 ; y =      61.0000 +       0.6333 x ; interpolation
+   0 <= x <=       30 ; y =      61.0000 +       0.6333 x ; interpolation
   30 <= x <=       60 ; y =      98.0000 +      -0.6000 x ; interpolation
   60 <= x <=       90 ; y =      20.0000 +       0.7000 x ; interpolation
   90 <= x <=      120 ; y =     128.0000 +      -0.5000 x ; interpolation
-
  ```
  * sample-input-core-01.txt
  ```
-  0 <= x <=       30 ; y =      63.0000 +       0.6000 x ; interpolation
+   0 <= x <=       30 ; y =      63.0000 +       0.6000 x ; interpolation
   30 <= x <=       60 ; y =      99.0000 +      -0.6000 x ; interpolation
   60 <= x <=       90 ; y =      25.0000 +       0.6333 x ; interpolation
   90 <= x <=      120 ; y =     121.0000 +      -0.4333 x ; interpolation
  ```
  * sample-input-core-02.txt
  ```
-  0 <= x <=       30 ; y =      50.0000 +       0.6000 x ; interpolation
+   0 <= x <=       30 ; y =      50.0000 +       0.6000 x ; interpolation
   30 <= x <=       60 ; y =      84.0000 +      -0.5333 x ; interpolation
   60 <= x <=       90 ; y =      16.0000 +       0.6000 x ; interpolation
   90 <= x <=      120 ; y =     106.0000 +      -0.4000 x ; interpolation
-
  ```
  * sample-input-core-03.txt
  ```
-  0 <= x <=       30 ; y =      58.0000 +       0.6333 x ; interpolation
+   0 <= x <=       30 ; y =      58.0000 +       0.6333 x ; interpolation
   30 <= x <=       60 ; y =      94.0000 +      -0.5667 x ; interpolation
   60 <= x <=       90 ; y =      22.0000 +       0.6333 x ; interpolation
   90 <= x <=      120 ; y =     121.0000 +      -0.4667 x ; interpolation
