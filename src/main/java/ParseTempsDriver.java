@@ -1,88 +1,87 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 import edu.odu.cs.cs417.PiecewiseLinearInterpolation;
 import edu.odu.cs.cs417.PiecewiseLinearInterpolation.LineSegment;
+import edu.odu.cs.cs417.TemperatureParser.CoreTempReading;
+import static edu.odu.cs.cs417.TemperatureParser.parseRawTemps;
 
 /**
  * A simple command line test driver for TemperatureParser.
  */
 public class ParseTempsDriver {
 
-    public static void main(String[] args) {
-        
-        // 1. Arguments & Execution
-        // Program must accept an input filename as the first command line argument
-        if (args.length < 1) {
+    /**
+     * The main function used to demonstrate the TemperatureParser class.
+     *
+     * @param args used to pass in a single filename
+     */
+    public static void main(String[] args)
+    {
+        BufferedReader tFileStream = null;
+        File inputFile = null;
+
+        // Parse command line argument 1
+        try {
+            inputFile = new File(args[0]);
+            tFileStream = new BufferedReader(new FileReader(inputFile));
+        }
+        catch (ArrayIndexOutOfBoundsException e) {
             System.err.println("Error: No input file provided.");
-            System.err.println("Usage: java ParseTempsDriver <input-file>");
+            System.exit(1);
+        }
+        catch (FileNotFoundException e) {
+            System.err.println("Error: File not found.");
             System.exit(1);
         }
 
-        String inputFilename = args[0];
-        File inputFile = new File(inputFilename);
-
-        // Extract basename (remove directory path and extension like .txt)
+        // Extract the basename for output file generation
         String basename = inputFile.getName();
         int dotIndex = basename.lastIndexOf('.');
         if (dotIndex > 0) {
             basename = basename.substring(0, dotIndex);
         }
 
-        // 2. Data pre-processing
-        // Structure the data for analysis by separating it into four cores
-        List<List<Double>> coreTemperatures = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            coreTemperatures.add(new ArrayList<>());
-        }
+        // Parse the file using the provided TemperatureParser
+        List<CoreTempReading> allTheTemps = parseRawTemps(tFileStream);
 
-        try (Scanner scanner = new Scanner(inputFile)) {
-            while (scanner.hasNext()) {
-                // Each line represents temperature readings from 4 processor cores
-                for (int i = 0; i < 4; i++) {
-                    if (scanner.hasNext()) {
-                        String token = scanner.next();
-                        
-                        // Clean the token of any labels (e.g., "+61.0°C" -> "61.0") 
-                        // to handle both labeled and unlabeled data files seamlessly.
-                        token = token.replace("+", "").replace("°C", "");
-                        coreTemperatures.get(i).add(Double.parseDouble(token));
-                    }
-                }
+        //----------------------------------------------------------------------
+        // Split into separate arrays
+        //----------------------------------------------------------------------
+        final int numberOfReadings = allTheTemps.size();
+        final int numberOfCores = allTheTemps.get(0).readings.length;
+
+        int[] times = new int[numberOfReadings];
+        double[][] coreReadings = new double[numberOfCores][numberOfReadings];
+
+        for (int lineIdx = 0; lineIdx < numberOfReadings; ++lineIdx) {
+            for (int coreIdx = 0; coreIdx < numberOfCores; ++coreIdx) {
+                times[lineIdx] = allTheTemps.get(lineIdx).step;
+                coreReadings[coreIdx][lineIdx] = allTheTemps.get(lineIdx).readings[coreIdx];
             }
-        } catch (FileNotFoundException e) {
-            System.err.println("Error: Could not open input file " + inputFilename);
-            System.exit(1);
         }
 
-        // 3. Piecewise Linear Interpolation & File Output
-        // Readings are taken every 30 seconds
-        int timeStep = 30; 
-
-        for (int core = 0; core < 4; core++) {
-            List<Double> tempsForCore = coreTemperatures.get(core);
+        //----------------------------------------------------------------------
+        // Compute Piecewise Linear Interpolation and Write to Files
+        //----------------------------------------------------------------------
+        for (int coreIdx = 0; coreIdx < numberOfCores; ++coreIdx) {
             
-            // Compute the interpolation lines for the current core
-            List<LineSegment> segments = PiecewiseLinearInterpolation.compute(tempsForCore, timeStep);
-
-            // Generate output filename: {basename}-core-0{core}.txt
-            String outputFilename = String.format("%s-core-0%d.txt", basename, core);
+            // Pass the split arrays into the computational module 
+            List<LineSegment> segments = PiecewiseLinearInterpolation.compute(coreReadings[coreIdx], times);
             
-            // Write all output to text files (one file per core)
+            // Format output filename (e.g., sample-input-core-00.txt)
+            String outputFilename = String.format("%s-core-%02d.txt", basename, coreIdx);
+            
             try (PrintWriter writer = new PrintWriter(outputFilename)) {
                 for (LineSegment segment : segments) {
                     writer.println(segment.toString());
                 }
-                
-                // Note: The global linear least squares approximation output 
-                // will be generated and appended here in the next milestone.
-                
             } catch (FileNotFoundException e) {
-                System.err.println("Error: Could not create output file " + outputFilename);
+                System.err.println("Error creating output file: " + outputFilename);
             }
         }
     }
