@@ -1,71 +1,89 @@
-import java.util.List;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
-import static edu.odu.cs.cs417.TemperatureParser.CoreTempReading;
-import static edu.odu.cs.cs417.TemperatureParser.parseRawTemps;
+import edu.odu.cs.cs417.PiecewiseLinearInterpolation;
+import edu.odu.cs.cs417.PiecewiseLinearInterpolation.LineSegment;
 
 /**
  * A simple command line test driver for TemperatureParser.
  */
 public class ParseTempsDriver {
 
-    /**
-     * The main function used to demonstrate the TemperatureParser class.
-     *
-     * @param args used to pass in a single filename
-     */
-    public static void main(String[] args)
-    {
-        BufferedReader tFileStream = null;
-
-        // Parse command line argument 1
-        try {
-            tFileStream = new BufferedReader(new FileReader(new File(args[0])));
-        }
-        catch (ArrayIndexOutOfBoundsException e) {
-            // TBW
-        }
-        catch (FileNotFoundException e) {
-            // TBW
+    public static void main(String[] args) {
+        
+        // 1. Arguments & Execution
+        // Program must accept an input filename as the first command line argument
+        if (args.length < 1) {
+            System.err.println("Error: No input file provided.");
+            System.err.println("Usage: java ParseTempsDriver <input-file>");
+            System.exit(1);
         }
 
-        List<CoreTempReading> allTheTemps = parseRawTemps(tFileStream);
+        String inputFilename = args[0];
+        File inputFile = new File(inputFilename);
 
-        for (CoreTempReading aReading : allTheTemps) {
-            System.out.println(aReading);
+        // Extract basename (remove directory path and extension like .txt)
+        String basename = inputFile.getName();
+        int dotIndex = basename.lastIndexOf('.');
+        if (dotIndex > 0) {
+            basename = basename.substring(0, dotIndex);
         }
 
-        //----------------------------------------------------------------------
-        // Split into separate arrays
-        //----------------------------------------------------------------------
-        final int numberOfReadings = allTheTemps.size();
-        final int numberOfCores = allTheTemps.get(0).readings.length;
+        // 2. Data pre-processing
+        // Structure the data for analysis by separating it into four cores
+        List<List<Double>> coreTemperatures = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            coreTemperatures.add(new ArrayList<>());
+        }
 
-        int[] times = new int[numberOfReadings];
-        double[][] coreReadings = new double[numberOfCores][numberOfReadings];
-
-        for (int lineIdx = 0; lineIdx < numberOfReadings; ++lineIdx) {
-            for (int coreIdx = 0; coreIdx < numberOfCores; ++coreIdx) {
-                times[lineIdx] = allTheTemps.get(lineIdx).step;
-                coreReadings[coreIdx][lineIdx] = allTheTemps.get(lineIdx).readings[coreIdx];
+        try (Scanner scanner = new Scanner(inputFile)) {
+            while (scanner.hasNext()) {
+                // Each line represents temperature readings from 4 processor cores
+                for (int i = 0; i < 4; i++) {
+                    if (scanner.hasNext()) {
+                        String token = scanner.next();
+                        
+                        // Clean the token of any labels (e.g., "+61.0°C" -> "61.0") 
+                        // to handle both labeled and unlabeled data files seamlessly.
+                        token = token.replace("+", "").replace("°C", "");
+                        coreTemperatures.get(i).add(Double.parseDouble(token));
+                    }
+                }
             }
+        } catch (FileNotFoundException e) {
+            System.err.println("Error: Could not open input file " + inputFilename);
+            System.exit(1);
         }
 
-        //----------------------------------------------------------------------
-        // Output times alongside each core
-        //----------------------------------------------------------------------
-        System.out.println();
-        for (int coreIdx = 0; coreIdx < numberOfCores; ++coreIdx) {
-            System.out.printf("Core # %2d%n", coreIdx);
+        // 3. Piecewise Linear Interpolation & File Output
+        // Readings are taken every 30 seconds
+        int timeStep = 30; 
 
-            for (int i = 0; i < times.length; ++i) {
-                System.out.printf("%8d -> %5.2f%n", times[i], coreReadings[coreIdx][i]);
+        for (int core = 0; core < 4; core++) {
+            List<Double> tempsForCore = coreTemperatures.get(core);
+            
+            // Compute the interpolation lines for the current core
+            List<LineSegment> segments = PiecewiseLinearInterpolation.compute(tempsForCore, timeStep);
+
+            // Generate output filename: {basename}-core-0{core}.txt
+            String outputFilename = String.format("%s-core-0%d.txt", basename, core);
+            
+            // Write all output to text files (one file per core)
+            try (PrintWriter writer = new PrintWriter(outputFilename)) {
+                for (LineSegment segment : segments) {
+                    writer.println(segment.toString());
+                }
+                
+                // Note: The global linear least squares approximation output 
+                // will be generated and appended here in the next milestone.
+                
+            } catch (FileNotFoundException e) {
+                System.err.println("Error: Could not create output file " + outputFilename);
             }
-
-            System.out.println();
         }
     }
 }
