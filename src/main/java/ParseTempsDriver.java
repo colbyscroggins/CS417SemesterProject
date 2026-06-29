@@ -66,7 +66,7 @@ public class ParseTempsDriver {
         }
 
         //----------------------------------------------------------------------
-        // Compute Piecewise Linear Interpolation and Write to Files
+        // Compute Piecewise Linear Interpolation and Write Output Files
         //----------------------------------------------------------------------
         for (int coreIdx = 0; coreIdx < numberOfCores; ++coreIdx) {
             

@@ -43,7 +43,7 @@ public class PiecewiseLinearInterpolation {
     public static List<LineSegment> compute(double[] temperatures, int[] times) {
         List<LineSegment> segments = new ArrayList<>();
 
-        // Iterate through n-1 segments to compute adjacent pairs
+        // Compute adjacent pairs
         for (int k = 0; k < temperatures.length - 1; k++) {
             int x_k = times[k];
             int x_k1 = times[k + 1];
