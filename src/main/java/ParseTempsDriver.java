@@ -11,13 +11,13 @@ import edu.odu.cs.cs417.TemperatureParser.CoreTempReading;
 import static edu.odu.cs.cs417.TemperatureParser.parseRawTemps;
 
 /**
- * A simple command line test driver for TemperatureParser.
+ * A driver program to demonstrate the functionality of the TemperatureParser and PiecewiseLinearInterpolation classes.
  */
 public class ParseTempsDriver {
 
     /**
-     * The main function used to demonstrate the TemperatureParser class.
-     *
+     * The main function used to demonstrate the functionality of the TemperatureParser and PiecewiseLinearInterpolation classes.
+     * 
      * @param args used to pass in a single filename
      */
     public static void main(String[] args)

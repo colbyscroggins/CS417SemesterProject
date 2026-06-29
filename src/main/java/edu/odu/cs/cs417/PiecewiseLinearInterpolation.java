@@ -26,21 +26,18 @@ public class PiecewiseLinearInterpolation {
 
         /**
          * Formats the segment to match the project's exact output specifications.
-         * 
          * @return A formatted string 
          */
         @Override
         public String toString() {
-            // Adjust spacing constraints exactly to match sample outputs.
             return String.format("%8d <= x <= %8d ; y = %12.4f + %12.4f x ; interpolation", x0, x1, b, m);
         }
     }
 
     /**
      * Computes piecewise linear equations for a sequence of temperatures.
-     *
      * @param temperatures Array of raw temperature values for a single CPU core.
-     * @param times        Array of corresponding time steps in seconds.
+     * @param times Array of corresponding time steps in seconds.
      * @return A list of computed line segments formatted for file output.
      */
     public static List<LineSegment> compute(double[] temperatures, int[] times) {
